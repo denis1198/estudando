@@ -2,17 +2,16 @@
     <div class="container">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <div class="card">
-                    <div class="card-header">Busca de marcas</div>
-
-                    <div class="card-body">
+                <!-- inicio do card de busca -->
+                <card-component titulo="Busca de marcas">
+                    <template v-slot:conteudo>
                         <div class="form row">
                             <div class="col mb-3">
-                                <inputcontainer-component
+                                <input-container-component
                                     titulo="ID"
                                     id="inputId"
                                     idHelp="idHelp"
-                                    textoAjuda="Opcional. Informe o ID da marca"
+                                    texto="Opcional. Informe o ID da marca"
                                 >
                                     <input
                                         type="number"
@@ -20,59 +19,150 @@
                                         id="inputId"
                                         placeholder="ID"
                                         aria-describedby="idHelp"
-                                />
-                                </inputcontainer-component>
+                                    />
+                                </input-container-component>
                             </div>
-
-                                <inputcontainer-component
-                                    titulo="ID"
-                                    id="inputId"
-                                    idHelp="idHelp"
-                                    textoAjuda="Opcional. Informe o ID da marca"
-                                >
-                                    <input
-                                        type="number"
-                                        class="form-control"
-                                        id="inputId"
-                                        placeholder="ID"
-                                        aria-describedby="idHelp"
-                                />
-                                </inputcontainer-component>
-
                             <div class="col mb-3">
-                                <label for="inputNome" class="form-label"
-                                    >Nome</label
-                                >
-                                <input
-                                    type="text"
-                                    class="form-control"
+                                <input-container-component
+                                    titulo="Nome da marca"
+                                    teste="Teste"
                                     id="inputNome"
-                                    placeholder="nome"
-                                />
-                                <div id="nomeHelp" class="form-text">
-                                    Opcional. Informe o nome.
-                                </div>
-                            </div>
-
-                            <div class="card-footer">
-                                <button
-                                    type="submit"
-                                    class="btn btn-primary btn-sm float-end"
+                                    id-help="nomeHelp"
+                                    texto="Opcional. Informe o nome da marca"
                                 >
-                                    Pesquisar
-                                </button>
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        id="inputNome"
+                                        placeholder="Marca"
+                                        aria-describedby="nomeHelp"
+                                    />
+                                </input-container-component>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </template>
+                    <template v-slot:rodape>
+                        <button
+                            type="submit"
+                            class="btn btn-primary btn-sm float-end"
+                        >
+                            Pesquisar
+                        </button>
+                    </template>
+                </card-component>
+
+                <!--inicio card de listagem de marcas -->
+                <card-component titulo="Relação de marcas">
+                    <template v-slot:conteudo>
+                        <table-component></table-component>
+                    </template>
+                    <template v-slot:rodape>
+                        <button
+                            type="submit"
+                            class="btn btn-primary btn-sm float-end"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalMarca"
+                        >
+                            Adicionar
+                        </button>
+                    </template>
+                </card-component>
+
+                <!-- fim do card de listagem de marcas -->
             </div>
         </div>
+        <modal-component id="modalMarca" titulo="Adicionar nova marca">
+            <template v-slot:conteudo>
+                <div class="form-group">
+                    <input-container-component
+                        titulo="Nome da marca"
+                        id="novoNome"
+                        id-help="novoNomeHelp"
+                        texto="Informe o nome da marca"
+                    >
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="novoNome"
+                            aria-describedby="nomeNomeHelp"
+                            placeholder="Nome da marca"
+                            v-model="nomeMarca"
+                        />
+                    </input-container-component>
+                    {{ nomeMarca }}
+                </div>
+                <div class="form-group">
+                    <input-container-component
+                        titulo="Imagem"
+                        id="novoImagem"
+                        id-help="novoImagemHelp"
+                        texto="Selecione uma imagem em formato PNG"
+                    >
+                        <input
+                            type="file"
+                            class="form-control"
+                            id="novoImagem"
+                            aria-describedby="nomeImagemHelp"
+                            placeholder="Selecione uma imagem"
+                            @change="carregarImagem($event)"
+                        />
+                    </input-container-component>
+                    {{ arquivoImagem }}
+                </div>
+            </template>
+
+            <template v-slot:rodape>
+                <button
+                    type="button"
+                    class="btn btn-secondary"
+                    data-dismiss="modal"
+                >
+                    Fechar
+                </button>
+                <button type="button" class="btn btn-primary" @click="salvar()">
+                    Salvar
+                </button>
+            </template>
+        </modal-component>
     </div>
 </template>
 
 <script>
-import InputContainer from "./InputContainer.vue";
 export default {
-    components: { InputContainer },
+    data() {
+        return {
+            urlBase: "http://localhost:8000/api/v1/marca",
+            nomeMarca: "",
+            arquivoImagem: [],
+        };
+    },
+    methods: {
+        carregarImagem(event) {
+            this.arquivoImagem = event.target.files;
+        },
+        salvar() {
+            // console.log(this.nomeMarca, this.arquivoImagem);
+
+            let formData = new FormData();
+            formData.append("nome", this.nomeMarca);
+            formData.append("imagem", this.arquivoImagem[0]);
+
+            let config = {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    Accept: "application/json",
+                },
+            };
+
+            axios
+                .post(this.urlBase, formData)
+                .then((response) => {
+                    console.log(response);
+                })
+                .catch((errors) => {
+                    console.log(errors);
+                });
+        },
+    },
 };
 </script>
